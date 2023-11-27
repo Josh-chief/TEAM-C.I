@@ -370,8 +370,8 @@ print(paste("MAE =", sprintf(mae, fmt = "%#.4f")))
 train_index <- createDataPartition(Food_demand$num_orders,
                                    p = 0.8,
                                    list = FALSE)
-Food_demand_train <- Food_demand[train_index, ]
-Food_demand_test <- Food_demand[-train_index, ]
+Food_demand_train <- Food_demand[train_index, c(2,3,4,5,6,9) ]
+Food_demand_test <- Food_demand[-train_index, c(2,3,4,5,6,9)]
 
 #### Train the model ----
 set.seed(7)
@@ -386,7 +386,7 @@ print(food_demand_caret_model_lm)
 
 #### Make predictions ----
 predictions <- predict(food_demand_caret_model_lm,
-                       Food_demand_test[, 1:9])
+                       Food_demand_test[])
 
 #### Display the model's evaluation metrics ----
 ##### RMSE ----
@@ -428,7 +428,7 @@ print(food_demand_caret_model_lm$finalModel)
 
 
 set.seed(9)
-predictions <- predict(food_demand_caret_model_lm, newdata = food_demand_test)
+predictions <- predict(food_demand_caret_model_lm, newdata = Food_demand_test)
 
 
 # STEP 5. Save and Load your Model ----
@@ -441,20 +441,28 @@ loaded_demand_model_caret_lr <- readRDS("./saved_food_demand_caret_model_lda.rds
 print(loaded_demand_model_caret_lr)
 
 predictions_with_loaded_model <-
-  predict(loaded_demand_model_caret_lr, newdata = food_demand_test)
+  predict(loaded_demand_model_caret_lr, newdata = Food_demand_test)
 
-ii
 # STEP 6. Creating Functions in R ----
 
 # Plumber requires functions, an example of the syntax for creating a function
 # in R is:
+#* @apiTitle  Order Prediction Model API
 
+#* @apiDescription Used to predict predict possible number of orders from a product.
+
+#* @param arg_week The 
+#* @param arg_meal_id The ID number of the meal
+#* @param arg_checkout The price of meal at final sale
+#* @param arg_base_price The base price for 1 item 
+
+#* @get /orders
 
 predict_num_orders <-
-  function(arg_week,arg_center_id, arg_meal_id, arg_checkout_price, arg_base_price,  arg_email_promotion, arg_homepage_feature) {
+  function(arg_week,arg_center_id, arg_meal_id, arg_checkout_price, arg_base_price) {
     # Create a data frame using the arguments
     to_be_predicted <-
-      data.frame(arg_week = week, arg_center_id = ceter_id, arg_meal_id, checkout_price = arg_checkout_price, base_price = arg_base_price,  emailer_for_promotion = arg_email_promotion, homepage_featured = arg_homepage_feature, )
+      data.frame(week = arg_week,  center_id = arg_center_id, meal_id = arg_meal_id, checkout_price = arg_checkout_price, base_price = arg_base_price)
     
     # Make a prediction based on the data frame
     predict(loaded_demand_model_caret_lr, to_be_predicted)
@@ -464,12 +472,7 @@ predict_num_orders <-
 # We can now call the function predict_diabetes() instead of calling the
 # predict() function directly
 
-predict_num_orders(100, 150, 1971,200, 250, 0, 1)
-
-
-
-
-
+predict_num_orders(113, 150, 1971,200, 250)
 
 
 
